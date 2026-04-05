@@ -700,6 +700,8 @@ export default function App() {
         img, iframe { max-width: 100%; }
       `}</style>
       <Navbar active={active} setActive={setActive} />
+
+      
       <main>
         {active === "Home"    && <HomePage    setActive={setActive} />}
         {active === "About"   && <AboutPage   />}
