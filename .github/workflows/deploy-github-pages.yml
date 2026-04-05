@@ -1,42 +1,59 @@
-name: Deploy to GitHub Pages
+name: 🚀 Deploy React Frontend to Hostinger
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
+    branches:
+      - mf
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: npm
-      - run: npm ci
-      - run: npm run build
-      # v4: include .nojekyll (dotfiles excluded by default)
-      - uses: actions/upload-pages-artifact@v4
-        with:
-          path: dist
-          include-hidden-files: true
-
   deploy:
-    needs: build
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
-      - id: deployment
-        uses: actions/deploy-pages@v5
+      - name: ⬇️ Checkout Code
+        uses: actions/checkout@v3
+
+      - name: ⚙️ Install Dependencies
+        run: npm install
+
+      - name: 🛠️ Build React App
+        run: npm run build
+
+      - name: 🧪 Debug dist folder contents
+        run: |
+          echo "Files in dist:"
+          ls -al ./dist
+
+      - name: 🔍 Verify Secrets
+        run: |
+          echo "Checking if secrets are available..."
+          if [ -z "${{ secrets.FTP_HOST_MF }}" ]; then
+            echo "ERROR: FTP_HOST_MF secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.FTP_USERNAME_MF }}" ]; then
+            echo "ERROR: FTP_USERNAME_MF secret is not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.FTP_PASSWORD_MF }}" ]; then
+            echo "ERROR: FTP_PASSWORD_MF secret is not set"
+            exit 1
+          fi
+          echo "✓ All secrets are available (values are masked for security)"
+
+      - name: 📤 Deploy via FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+          local-dir: ./dist/
+          server-dir: /
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/.DS_Store
