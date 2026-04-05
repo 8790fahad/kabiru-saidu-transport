@@ -3,7 +3,9 @@ name: 🚀 Deploy React Frontend to Hostinger
 on:
   push:
     branches:
+      - main
       - mf
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -11,18 +13,13 @@ jobs:
 
     steps:
       - name: ⬇️ Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: ⚙️ Install Dependencies
-        run: npm install
+        run: npm ci
 
       - name: 🛠️ Build React App
         run: npm run build
-
-      - name: 🧪 Debug dist folder contents
-        run: |
-          echo "Files in dist:"
-          ls -al ./dist
 
       - name: 🔍 Verify Secrets
         run: |
@@ -35,8 +32,8 @@ jobs:
             echo "ERROR: FTP_USERNAME_MF secret is not set"
             exit 1
           fi
-          if [ -z "${{ secrets.FTP_PASSWORD_MF }}" ]; then
-            echo "ERROR: FTP_PASSWORD_MF secret is not set"
+          if [ -z "${{ secrets.FTP_PASSWORD }}" ]; then
+            echo "ERROR: FTP_PASSWORD secret is not set"
             exit 1
           fi
           echo "✓ All secrets are available (values are masked for security)"
